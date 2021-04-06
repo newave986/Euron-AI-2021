@@ -284,8 +284,8 @@ y_train_folds = []
 ################################################################################
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-X_train_folds = np.array_split(X_train, num_folds)
-y_train_folds = np.array_split(y_train, num_folds)
+X_train_folds = np.array_split(X_train, num_folds, axis=0)
+y_train_folds = np.array_split(y_train, num_folds, axis=0)
 
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -310,18 +310,22 @@ k_to_accuracies = {}
 # https://numpy.org/doc/stable/reference/generated/numpy.vstack.html
 # np.concatenate() 사용해서 합쳐 줄 수 있음. 이때 vstack은 axis=0, hstack는 axis=1 설정하면 됨!
 
-for k in k_choices:
-    k_to_accuracies[k] = []
-    for i in range(num_folds):
-      classifier = KNearestNeighbor()
-      X_train_fold = np.vstack(X_train_folds[:i] + X_train_folds[i+1:])
-      y_train_fold = np.vstack(y_train_folds[:i] + y_train_folds[i+1:])[:,0]
-      
-      classifier.train(X_train_fold, y_train_fold)
-      y_pred_fold = classifier.predict(X_train_folds[i], k=k) # 여기서 오류
-      num_correct = np.sum(y_pred_fold == y_train_folds[i])
-      
-      accuracy = float(num_correct) / X_train_folds[i].shape[0]
+for i in range(num_folds):
+    X_train_batch = np.concatenate(X_train_folds[1:num_folds] + X_train_folds[i+1:])
+    y_train_batch = np.concatenate(y_train_folds[1:num_folds] + y_train_folds[i+1:])
+    X_valid_batch = X_train_folds[i]
+    y_valid_batch = y_train_folds[i]
+
+    classifier.train(X_train_batch, y_train_batch)
+    dists = model.compute_distances_no_loops(X_valid_batch)
+    
+    for k in k_choices:
+      if i == 0: k_to_accuracies[k] = []
+      y_valid_pred = model.predict_labels(dists, k=k)
+
+      num_correct = np.sum(y_valid_pred == y_valid_batch)
+      accuracy = float(num_correct) / y_valid_batch.shape[0]
+
       k_to_accuracies[k].append(accuracy)
 
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -401,3 +405,4 @@ FILES_TO_SAVE = ['cs231n/classifiers/k_nearest_neighbor.py']
 for files in FILES_TO_SAVE:
   with open(os.path.join(FOLDER_TO_SAVE, '/'.join(files.split('/')[1:])), 'w') as f:
     f.write(''.join(open(files).readlines()))
+

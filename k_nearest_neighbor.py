@@ -136,16 +136,15 @@ class KNearestNeighbor(object):
         # 이걸 그럼 어떻게 linalg랑 for-loop 둘 다 안 쓰고 작성할 수 있을까?
         # axis=-1인 경우: numpy.linalg.norm에서 axis는 이 norm을 계산할 X의 축이다. 여기서는 axis=-1이므로 즉 axis=1이 될 듯 
         
-        # (x-y)^2 = x^2 + y^2 - 2xy 임을 이용해서 코드 작성하기!!@ ㅎㅎ
-        # 2xy 곱할 때 X_train은 T로 역전해 준다 ㅎㅎ
-        # 연산은 파이썬이 broadcast 알아서 해 줄 거
+        # (x-y)^2 = x^2 + y^2 - 2xy 임을 이용해서 코드 작성하기
+        # 2xy 곱할 때 X_train은 T로 역전해 준다
         # https://stackoverflow.com/questions/39441517/in-numpy-sum-there-is-parameter-called-keepdims-what-does-it-do 
         # X^2 계산해 줄 때는 keepdims=True로 넣어 줄 것 
         
-        # 차원 계산이 좀 어려운 것 같으니까 과제 제출하고 다시 한번 생각해 보자!!
         # X는 (num_train, D)인데 여기서 num_train은 self.X_train.shape[0]임. 
-
-        dists = np.sqrt(np.sum(X**2, axis=1, keepdims=True) + np.sum(self.X_train**2, axis=1) - 2 * np.dot(X, self.X_train.T)))
+        
+        dists = ((-2 * np.dot(X, self.X_train.T)) + np.sum(X**2, axis=1, keepdims=True) + np.sum(self.X_train**2, axis=1)
+        
         
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
@@ -178,7 +177,7 @@ class KNearestNeighbor(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            closest_y = self.y_train[np.argsort(dists[i, :])[:k]]
+            closest_y = self.y_train[np.argsort(dists[i])[:k]]
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
             #########################################################################
